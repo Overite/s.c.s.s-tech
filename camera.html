@@ -6,6 +6,42 @@
       <h1></h1>
       <iframe style="width: 100% ; height:80vh; border-radius: 10px;" src="https://e784-105-112-55-251.ngrok-free.app/"></iframe>
       <br><br>
-      <button style="margin-left: 45%; background-color: rgb(65, 199, 65); font-size: 16px; border-radius: 5px; color: white;width: 10%; height: 5%; " type="button">Record</button>
+      <button id="recordBtn" style="margin-left: 45%; background-color: rgb(65, 199, 65); font-size: 16px; border-radius: 5px; color: white;width: 10%; height: 5%; " type="button">Record</button>
+      <video id="videoElement" style="display: none; width: 100% ; height:80vh; border-radius: 10px;"></video>
+      <script>
+         let stream;
+         let recorder;
+         const recordBtn = document.getElementById("recordBtn");
+         const videoElement = document.getElementById("videoElement");
+         recordBtn.onclick = async () => {
+             try {
+                 stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                 recorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+                 const chunks = [];
+                 recorder.ondataavailable = e => chunks.push(e.data);
+                 recorder.onstop = e => {
+                     const completeBlob = new Blob(chunks, { type: 'video/webm' });
+                     const videoUrl = URL.createObjectURL(completeBlob);
+                     videoElement.style.display = "block";
+                     videoElement.src = videoUrl;
+                 };
+                 recorder.start();
+                 recordBtn.disabled = true;
+             } catch (err) {
+                 console.error(err);
+             }
+         };
+         document.onkeyup = e => {
+             if (e.code === "Escape") {
+                 if (stream) {
+                     stream.getTracks().forEach(track => track.stop());
+                 }
+                 if (recorder) {
+                     recorder.stop();
+                 }
+                 recordBtn.disabled = false;
+             }
+         };
+      </script>
    </body>
 </html>
