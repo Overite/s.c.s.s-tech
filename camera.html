@@ -1,44 +1,60 @@
 <html>
-   <head>
-      <title>S.C.S.S | YABA TECH</title>
-   </head>
-   <body style="background-color: black;">
-      <h1></h1>
-      <iframe style="width: 100% ; height:80vh; border-radius: 10px;" src="https://e784-105-112-55-251.ngrok-free.app/"></iframe>
+  <head>
+    <title>S.C.S.S | YABA TECH</title>
+  </head>
+  <body style="background-color: black;">
+    <h1></h1>
+     <iframe style="width: 100% ; height:80vh; border-radius: 10px;" src="https://eb75-105-112-168-10.ngrok-free.app/"></iframe>
       <br><br>
-      <button id="recordBtn" style="margin-left: 45%; background-color: rgb(65, 199, 65); font-size: 16px; border-radius: 5px; color: white;width: 10%; height: 5%; " type="button">Record</button>
-      <br><br>
-      <a id="downloadLink" href="#" download>Download Video</a>
-   </body>
-   <script>
-      const recordButton = document.getElementById("recordBtn");
-      const downloadLink = document.getElementById("downloadLink");
+    <div id="screen"></div>
+    <br><br>
+    <button id="recordBtn" style="margin-left: 45%; background-color: rgb(65, 199, 65); font-size: 16px; border-radius: 5px; color: white;width: 10%; height: 5%; " type="button">Record</button>
+    
+    <script>
+      // Get the screen element
+      const screen = document.getElementById('screen');
 
-      // add event listener to the record button
-      recordButton.addEventListener("click", () => {
-        // start recording the screen
-        navigator.mediaDevices.getDisplayMedia({ video: true })
-        .then(stream => {
-          const chunks = [];
-          const mediaRecorder = new MediaRecorder(stream);
-          
-          // when recording is stopped, save the recorded video as a Blob object and update the download link
-          mediaRecorder.addEventListener("stop", () => {
-            const videoBlob = new Blob(chunks, { type: "video/mp4" });
-            downloadLink.href = URL.createObjectURL(videoBlob);
-          });
+      // Get the record button
+      const recordBtn = document.getElementById('recordBtn');
 
-          // start recording
+      // Declare variables for the MediaRecorder object and the recorded video blob
+      let mediaRecorder;
+      let chunks = [];
+
+      // When the record button is clicked, start recording the screen
+      recordBtn.onclick = function() {
+        navigator.mediaDevices.getDisplayMedia({video: true, audio: true})
+        .then(function(stream) {
+          // Create a MediaRecorder object to record the screen
+          mediaRecorder = new MediaRecorder(stream);
+
+          // When the data is available, push it to the chunks array
+          mediaRecorder.ondataavailable = function(e) {
+            chunks.push(e.data);
+          }
+
+          // When the recording is stopped, create a Blob object and download it as a video file
+          mediaRecorder.onstop = function(e) {
+            const videoBlob = new Blob(chunks, {type: 'video/mp4'});
+            const videoUrl = URL.createObjectURL(videoBlob);
+            const downloadLink = document.createElement('a');
+            downloadLink.href = videoUrl;
+            downloadLink.download = 'recorded-video.mp4';
+            downloadLink.click();
+            chunks = [];
+          }
+
+          // Start recording the screen
           mediaRecorder.start();
-
-          // stop recording after 10 seconds
-          setTimeout(() => {
-            mediaRecorder.stop();
-          }, 10000);
-        })
-        .catch(error => {
-          console.error(error);
         });
-      });
-   </script>
+      }
+
+      // When the recording is finished, stop the MediaRecorder object
+      screen.onclick = function() {
+        if (mediaRecorder) {
+          mediaRecorder.stop();
+        }
+      }
+    </script>
+  </body>
 </html>
